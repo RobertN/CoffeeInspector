@@ -1,0 +1,81 @@
+<!-- Hello :) -->
+<!doctype html>
+<html lang="en">
+	<head>
+		<script>
+		
+			var theButton,
+				brewIterator = 0,
+				brewer = null,
+				ToolbarUIItemProperties = {
+					title: "Koll på kaffet",
+					icon: "images/tom.png"
+				};
+			
+			
+			
+			function updateIcon(img) {
+				theButton.icon = img;
+			}
+			
+			
+			
+			function brew() {
+				theButton.icon = 'images/anim' + brewIterator + '.png';
+				brewIterator = (brewIterator == 7) ? 0 : brewIterator + 1;
+			}
+			
+			
+			
+			function pollServer() {
+				var xhr = new XMLHttpRequest();
+				xhr.onreadystatechange = function() {
+					if (xhr.readyState == 4 && xhr.status == 200) {
+						if (xhr.responseText != '') {
+							var response = xhr.responseText.split(';'),
+								state = response[0],
+								time = response[1];
+							if (state == 'ON') {
+								if (time > 210) {
+									clearInterval(brewer);
+									brewer = null;
+									updateIcon('images/full.png');
+								} else {
+									if (brewer == null) {
+										brewer = setInterval(brew, 750);
+									}
+								}
+							} else if (state == 'OFF') {
+								updateIcon('images/tom.png');
+							}
+						}
+					}
+				};
+				xhr.open('GET', 'http://www.yawnmedia.se/kaffe?' + Math.random(), true);
+				xhr.send();
+			}
+			
+			
+			
+			window.addEventListener("load", function(){
+				theButton = opera.contexts.toolbar.createItem(ToolbarUIItemProperties);
+				opera.contexts.toolbar.addItem(theButton);
+				try {
+					pollServer();
+				} catch (err) {
+					opera.postError(err);
+				}
+				setInterval(function() {
+					try {
+						pollServer();
+					} catch (err) {
+						opera.postError(err);
+					}
+				}, 20000);
+			}, false);
+			
+		</script>
+	</head>
+<body>
+</body>
+</html>
