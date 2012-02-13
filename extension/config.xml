@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<<<<<<< HEAD
 <widget xmlns="http://www.w3.org/ns/widgets" id="http://www.yawnmedia.se/kaffe/" version="1.3">
+=======
+<widget xmlns="http://www.w3.org/ns/widgets" id="http://www.yawnmedia.se/kaffe/" version="1.2">
+>>>>>>> 41ed6a6ffffe8a944e9f3f882abd185249670d08
 	<update-description href="http://jeppe.linkoping.osa/kaffe/checkUpdate.xml"/>
 	<name>CoffeeInspector</name>
 	<author>John Long Kalsong</author>
