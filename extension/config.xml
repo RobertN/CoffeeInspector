@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <widget xmlns="http://www.w3.org/ns/widgets" id="http://www.yawnmedia.se/kaffe/" version="1.1">
 	<update-description href="http://jeppe.linkoping.osa/kaffe/checkUpdate.xml"/>
-	<name>Koll på kaffet</name>
+	<name>CoffeeInspector</name>
 	<author>John Long Kalsong</author>
 	<description>Stay up to date with the latest news from Kaffebryggar'n, served to you inside an Opera extension</description>
 	<icon src="images/full.png"/>
