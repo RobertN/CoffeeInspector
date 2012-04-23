@@ -10,6 +10,7 @@ import os
 class KaffeState:
 	ON = 1
 	OFF = 2
+	ERROR = 3
 
 def make_request(state):
 	print "Sending request"
@@ -17,18 +18,23 @@ def make_request(state):
 
 	if state == KaffeState.ON:
 		print "Changing state to: ON"
-		connection.request("GET", "http://www.yawnmedia.se/kaffe/?state=ON")
+		try:
+			connection.request("GET", "http://www.yawnmedia.se/kaffe/?state=ON")
+		except:
+			print "Failed to set new state - no connection"
 	elif state == KaffeState.OFF:
 		print "Changing state to: OFF"
-		connection.request("GET", "http://www.yawnmedia.se/kaffe/?state=OFF")
+		try:
+			connection.request("GET", "http://www.yawnmedia.se/kaffe/?state=OFF")
+		except:
+			print "Failed to set new state - no connection"
 
-def check_connection():
-	interface = "wlan0"
+def check_connection(interface, ip):
 	if_output = ""
 
 	# Check if the interface is listed when running ifconfig
 	if_output = subprocess.check_output("ifconfig", stderr=subprocess.STDOUT, shell=True)
-	if if_output.find("wlan0") == -1:
+	if if_output.find(interface) == -1:
 		return False
 
 	# Retrieve the output from ifconfig "wlan0"
@@ -37,17 +43,21 @@ def check_connection():
 	except subprocess.CalledProcessError:
 		return False
 
-	if if_output.find("inet addr:192.168.1.") != -1:
-		print "Found IP adress for " + interface
+	if if_output.find("inet addr:" + ip) != -1:
+		# print "Found IP adress for " + interface
 		return True
 
-	print "Did not find IP address"
+	# print "Did not find IP address"
 	return False
 
 def get_server_state():
 	connection = httplib.HTTPConnection('www.yawnmedia.se');
-	connection.request("GET", "http://www.yawnmedia.se/kaffe/");
-	response = connection.getresponse();
+	try:
+		connection.request("GET", "http://www.yawnmedia.se/kaffe/");
+		response = connection.getresponse();
+	except socket.gaierror:
+		print "Failed to connect to server"
+		return KaffeState.ERROR
 
 	state = response.read()
 
@@ -59,38 +69,33 @@ def get_server_state():
 		return KaffeState.ON
 
 def check_state():
-	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-	s.settimeout(3)
-	try:
-		s.connect(("10.30.0.237", 80))
-	except socket.gaierror:
+	if check_connection("eth0", "10.30.3.") == False:
 		return KaffeState.OFF
 
 	return KaffeState.ON
 
 if __name__ == "__main__":
-
-	last_state = check_state()
+	
+	last_wifi_reset = 0
+	print "Server state: " + str(get_server_state())
+	print "True state: " + str(check_state())
 
 	while 1:
+		
+		server_state = get_server_state()
+
 		while 1:
-			if not check_connection():
+			if not check_connection("wlan0", "192.168.1.") or (server_state == KaffeState.ERROR and time.time() - last_wifi_reset > 300):
+				last_wifi_reset = time.time()
 				os.system("./restartWifi.sh &")
 				time.sleep(30)
 				os.system("killall -9 restartWifi.sh")
 			else:
 				break
 
-		new_state = check_state()
-
-		# if state has changed, let the server know
-		if new_state != last_state:
-			last_state = new_state
-			request = make_request(new_state)
-
-
-		if get_server_state() != last_state:
-			request = make_request(last_state)
+		if check_state() != server_state:
+			print "Changing state"
+			request = make_request(check_state())
 
 		time.sleep(5)
 
