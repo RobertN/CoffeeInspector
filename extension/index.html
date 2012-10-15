@@ -6,6 +6,7 @@
 			var theButton,
 				brewIterator = 0,
 				brewer = null,
+				xhr = null,
 				ToolbarUIItemProperties = {
 					title: "Koll på kaffet",
 					icon: "images/tom.png",
@@ -32,7 +33,18 @@
 			
 			
 			function pollServer() {
-				var xhr = new XMLHttpRequest();
+				xhr.open('GET', 'http://www.yawnmedia.se/kaffe?' + Math.random(), true);
+				xhr.send();
+			}
+			
+			
+			
+			window.addEventListener('load', function() {
+
+				//
+				// Init XHR
+				//
+				xhr = new XMLHttpRequest();
 				xhr.onreadystatechange = function() {
 					if (xhr.readyState == 4 && xhr.status == 200) {
 						if (xhr.responseText != '') {
@@ -60,13 +72,7 @@
 						}
 					}
 				};
-				xhr.open('GET', 'http://www.yawnmedia.se/kaffe?' + Math.random(), true);
-				xhr.send();
-			}
-			
-			
-			
-			window.addEventListener('load', function() {
+
 				theButton = opera.contexts.toolbar.createItem(ToolbarUIItemProperties);
 				opera.contexts.toolbar.addItem(theButton);
 				try {
@@ -81,6 +87,7 @@
 						opera.postError(err);
 					}
 				}, 20000);
+
 			}, false);
 			
 		</script>
